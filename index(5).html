@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stock Management System</title>
+<style>
+:root{--primary:#0e5a8a;--dark:#0a3f67;--accent:#00a8c6;--bg:#f4f7fa;--text:#1f2937;--danger:#dc3545;--success:#198754;--warning:#f59e0b;--border:#dbe3ea}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+.app{display:flex;min-height:100vh}.sidebar{width:235px;background:var(--dark);color:#fff;position:fixed;top:0;bottom:0;left:0;overflow:auto}.brand{padding:20px 16px;font-size:20px;font-weight:700;border-bottom:1px solid #ffffff22}.brand small{display:block;font-size:11px;font-weight:400;margin-top:5px;opacity:.8}
+.nav{padding:12px}.nav button{width:100%;text-align:left;border:0;background:transparent;color:#fff;padding:12px;border-radius:7px;margin:3px 0;cursor:pointer;font-size:14px}.nav button:hover,.nav button.active{background:#ffffff1c}.main{margin-left:235px;width:calc(100% - 235px);padding:22px}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.topbar h1{margin:0;font-size:25px}.date{font-size:13px;color:#64748b}
+.page{display:none}.page.active{display:block}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}.card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px;box-shadow:0 2px 8px #00000008}.card .label{font-size:13px;color:#64748b}.card .value{font-size:27px;font-weight:700;margin-top:8px}.card.blue{border-left:5px solid var(--primary)}.card.green{border-left:5px solid var(--success)}.card.orange{border-left:5px solid var(--warning)}.card.red{border-left:5px solid var(--danger)}
+.panel{background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:18px}.panel h2{margin:0 0 15px;font-size:18px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;font:inherit}textarea{min-height:70px;resize:vertical}.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:#475569}.span2{grid-column:span 2}.span4{grid-column:span 4}
+button,.btn{border:0;border-radius:6px;padding:9px 13px;background:var(--primary);color:#fff;cursor:pointer;font-size:13px}.btn:hover,button:hover{filter:brightness(.94)}.btn.secondary{background:#64748b}.btn.success{background:var(--success)}.btn.danger{background:var(--danger)}.btn.warning{background:var(--warning);color:#111827}.btn.light{background:#e8eef3;color:#263746}.btn.small{padding:6px 9px;font-size:12px}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px;min-width:850px}th,td{padding:9px 8px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}th{background:#f1f5f9;position:sticky;top:0;z-index:1}tr:hover td{background:#fafcff}.badge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:700}.badge.in{background:#dcfce7;color:#166534}.badge.out{background:#fee2e2;color:#991b1b}.badge.low{background:#fef3c7;color:#92400e}.badge.ok{background:#dbeafe;color:#1e40af}.empty{text-align:center;padding:25px;color:#64748b}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:center;justify-content:center;padding:20px}.modal.show{display:flex}.modal-box{background:#fff;width:min(850px,100%);max-height:90vh;overflow:auto;border-radius:12px;padding:20px}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal-head h2{margin:0}.close{background:transparent;color:#111;font-size:24px;padding:2px 8px}
+.alert{padding:10px 12px;border-radius:7px;margin-bottom:12px;font-size:13px}.alert.warning{background:#fff7ed;color:#9a3412}.alert.info{background:#eff6ff;color:#1e40af}
+.report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.report-card{padding:15px;border:1px solid var(--border);border-radius:8px;background:#f8fafc;cursor:pointer}.report-card:hover{background:#eef6fb}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:repeat(2,1fr)}.report-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.sidebar{width:70px}.brand{font-size:0;text-align:center}.brand:before{content:"SM";font-size:18px}.brand small{display:none}.nav button{font-size:0;text-align:center}.nav button:before{content:"•";font-size:20px}.main{margin-left:70px;width:calc(100% - 70px);padding:12px}.cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.span2,.span4{grid-column:span 1}.topbar h1{font-size:20px}}
+@media print{.sidebar,.topbar,.toolbar,.no-print{display:none!important}.main{margin:0;width:100%;padding:0}.page{display:none!important}.page.printable{display:block!important}.panel{box-shadow:none;border:0}.table-wrap{overflow:visible}table{min-width:0}}
+.footer{text-align:center;padding:15px;margin-top:30px;color:#64748b;font-size:13px;border-top:1px solid #dbe3ea;background:#fff}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">Stock Management<small>Offline Inventory System</small></div>
+  <div class="nav">
+    <button class="active" data-page="dashboard">📊 Dashboard</button>
+    <button data-page="items">📦 Item Master</button>
+    <button data-page="stockin">⬇ Stock IN</button>
+    <button data-page="stockout">⬆ Stock OUT</button>
+    <button data-page="current">📋 Current Stock</button>
+    <button data-page="ledger">📒 Ledger</button>
+    <button data-page="reports">📈 Reports</button>
+    <button data-page="backup">💾 Backup / Restore</button>
+  </div>
+</aside>
+
+<main class="main">
+<div class="topbar"><h1 id="pageTitle">Dashboard</h1><div class="date" id="today"></div></div>
+
+<section id="dashboard" class="page active">
+  <div class="cards">
+    <div class="card blue"><div class="label">Total Items</div><div class="value" id="dItems">0</div></div>
+    <div class="card green"><div class="label">Total Quantity</div><div class="value" id="dQty">0</div></div>
+    <div class="card blue"><div class="label">Stock Value</div><div class="value" id="dValue">₹0.00</div></div>
+    <div class="card red"><div class="label">Low / Out of Stock</div><div class="value" id="dLow">0</div></div>
+  </div>
+  <div class="cards">
+    <div class="card green"><div class="label">Stock IN Today</div><div class="value" id="dIn">0</div></div>
+    <div class="card orange"><div class="label">Stock OUT Today</div><div class="value" id="dOut">0</div></div>
+    <div class="card blue"><div class="label">Suppliers</div><div class="value" id="dSuppliers">0</div></div>
+    <div class="card orange"><div class="label">Transactions</div><div class="value" id="dTransactions">0</div></div>
+  </div>
+  <div class="panel"><h2>Low Stock / Reorder Alert</h2><div id="lowTable"></div></div>
+  <div class="panel"><h2>Recent Transactions</h2><div id="recentTable"></div></div>
+</section>
+
+<section id="items" class="page">
+<div class="panel">
+  <div class="toolbar"><button class="btn" onclick="openItemModal()">+ Add Item</button><input id="itemSearch" placeholder="Search item code, name, category, supplier..." oninput="renderItems()" style="max-width:420px"><button class="btn secondary" onclick="exportItemsCSV()">Export CSV</button></div>
+  <div class="table-wrap"><table><thead><tr><th>Code</th><th>Item Name</th><th>Category</th><th>Unit</th><th>Min</th><th>Opening</th><th>Rate</th><th>Location</th><th>Supplier</th><th>Status</th><th>Action</th></tr></thead><tbody id="itemsBody"></tbody></table></div>
+</div>
+</section>
+
+<section id="stockin" class="page">
+<div class="panel">
+<h2>Record Stock IN / Purchase</h2>
+<form id="inForm"><div class="form-grid">
+<div class="field"><label>Date *</label><input type="date" id="inDate" required></div>
+<div class="field"><label>Invoice No.</label><input id="inInvoice"></div>
+<div class="field span2"><label>Supplier</label><input id="inSupplier" list="supplierList"></div>
+<div class="field span2"><label>Item *</label><select id="inItem" required></select></div>
+<div class="field"><label>Quantity *</label><input type="number" id="inQty" min="0.001" step="any" required></div>
+<div class="field"><label>Rate</label><input type="number" id="inRate" min="0" step="0.01"></div>
+<div class="field"><label>Batch / Lot No.</label><input id="inBatch"></div>
+<div class="field"><label>Expiry Date</label><input type="date" id="inExpiry"></div>
+<div class="field span4"><label>Remarks</label><textarea id="inRemarks"></textarea></div>
+<div class="span4"><button class="btn success" type="submit">Save Stock IN</button><button class="btn light" type="reset" onclick="setDefaultDates()" style="margin-left:6px">Reset</button></div>
+</div></form></div>
+<div class="panel"><h2>Recent Stock IN</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Invoice</th><th>Supplier</th><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th>Batch</th><th>Expiry</th></tr></thead><tbody id="inBody"></tbody></table></div></div>
+</section>
+
+<section id="stockout" class="page">
+<div class="panel">
+<h2>Record Stock OUT / Issue</h2>
+<form id="outForm"><div class="form-grid">
+<div class="field"><label>Date *</label><input type="date" id="outDate" required></div>
+<div class="field"><label>Issue No.</label><input id="outIssue"></div>
+<div class="field span2"><label>Department / Person</label><input id="outPerson"></div>
+<div class="field span2"><label>Item *</label><select id="outItem" required></select></div>
+<div class="field"><label>Quantity *</label><input type="number" id="outQty" min="0.001" step="any" required></div>
+<div class="field"><label>Purpose</label><input id="outPurpose"></div>
+<div class="field span4"><label>Remarks</label><textarea id="outRemarks"></textarea></div>
+<div class="span4"><button class="btn" type="submit">Save Stock OUT</button><button class="btn light" type="reset" onclick="setDefaultDates()" style="margin-left:6px">Reset</button></div>
+</div></form></div>
+<div class="panel"><h2>Recent Stock OUT</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Issue No.</th><th>Department / Person</th><th>Item</th><th>Qty</th><th>Purpose</th><th>Remarks</th></tr></thead><tbody id="outBody"></tbody></table></div></div>
+</section>
+
+<section id="current" class="page">
+<div class="panel"><div class="toolbar"><input id="currentSearch" placeholder="Search current stock..." oninput="renderCurrent()" style="max-width:400px"><select id="currentFilter" onchange="renderCurrent()" style="max-width:180px"><option value="all">All Stock</option><option value="low">Low Stock</option><option value="out">Out of Stock</option><option value="ok">Normal</option></select><button class="btn secondary" onclick="printPage('current')">Print</button><button class="btn secondary" onclick="exportCurrentCSV()">Export CSV</button></div><div class="table-wrap"><table><thead><tr><th>Code</th><th>Item</th><th>Category</th><th>Unit</th><th>Opening</th><th>IN</th><th>OUT</th><th>Adjust</th><th>Balance</th><th>Rate</th><th>Value</th><th>Status</th></tr></thead><tbody id="currentBody"></tbody></table></div></div>
+</section>
+
+<section id="ledger" class="page">
+<div class="panel"><div class="toolbar"><select id="ledgerItem" onchange="renderLedger()" style="max-width:300px"></select><input type="date" id="ledgerFrom" onchange="renderLedger()" style="max-width:160px"><input type="date" id="ledgerTo" onchange="renderLedger()" style="max-width:160px"><button class="btn secondary" onclick="printPage('ledger')">Print</button></div><div id="ledgerSummary" class="alert info"></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Reference</th><th>Party / Supplier</th><th>Qty IN</th><th>Qty OUT</th><th>Adjustment</th><th>Balance</th><th>Remarks</th></tr></thead><tbody id="ledgerBody"></tbody></table></div></div>
+</section>
+
+<section id="reports" class="page">
+<div class="panel"><h2>Reports</h2><div class="report-grid">
+<div class="report-card" onclick="showReport('stock')"><b>📦 Current Stock</b><br><small>Complete stock balance and valuation</small></div>
+<div class="report-card" onclick="showReport('low')"><b>⚠ Low Stock</b><br><small>Items requiring reorder</small></div>
+<div class="report-card" onclick="showReport('in')"><b>⬇ Stock IN</b><br><small>Purchases and receipts</small></div>
+<div class="report-card" onclick="showReport('out')"><b>⬆ Stock OUT</b><br><small>Issues and consumption</small></div>
+<div class="report-card" onclick="showReport('ledger')"><b>📒 Item Ledger</b><br><small>Complete transaction history</small></div>
+<div class="report-card" onclick="showReport('expiry')"><b>⏳ Expiry Report</b><br><small>Items with expiry dates</small></div>
+</div></div>
+<div class="panel" id="reportPanel"><div class="toolbar"><button class="btn secondary" onclick="printReport()">Print Report</button><button class="btn secondary" onclick="exportReportCSV()">Export CSV</button></div><div id="reportTitle"></div><div class="table-wrap" id="reportContent"></div></div>
+</section>
+
+<section id="backup" class="page">
+<div class="panel"><h2>Backup & Restore</h2><div class="alert info">Your data is stored in this browser using localStorage. Keep regular JSON backups, especially before clearing browser data.</div>
+<div class="toolbar"><button class="btn success" onclick="backupData()">⬇ Download Full Backup</button><button class="btn" onclick="document.getElementById('restoreFile').click()">⬆ Restore Backup</button><input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreData(event)"><button class="btn warning" onclick="demoData()">Load Demo Data</button><button class="btn danger" onclick="clearAllData()">Clear All Data</button></div>
+<div class="panel" style="background:#f8fafc"><h2>Database Information</h2><div id="dbInfo"></div></div></div>
+</section>
+
+<footer class="footer">Made by Amit Parmar | 9023801564</footer>
+</main>
+</div>
+
+<div class="modal" id="itemModal"><div class="modal-box">
+<div class="modal-head"><h2 id="itemModalTitle">Add Item</h2><button class="close" onclick="closeItemModal()">×</button></div><form id="itemForm"><input type="hidden" id="editItemId"><div class="form-grid">
+<div class="field"><label>Item Code *</label><input id="itemCode" required></div>
+<div class="field span2"><label>Item Name *</label><input id="itemName" required></div>
+<div class="field"><label>Category</label><input id="itemCategory" list="categoryList"></div>
+<div class="field"><label>Unit</label><input id="itemUnit" value="Nos"></div>
+<div class="field"><label>Minimum Stock</label><input type="number" id="itemMin" min="0" step="any" value="0"></div>
+<div class="field"><label>Maximum Stock</label><input type="number" id="itemMax" min="0" step="any" value="0"></div>
+<div class="field"><label>Opening Stock</label><input type="number" id="itemOpening" min="0" step="any" value="0"></div>
+<div class="field"><label>Purchase Rate</label><input type="number" id="itemRate" min="0" step="0.01" value="0"></div>
+<div class="field"><label>Location / Rack</label><input id="itemLocation"></div>
+<div class="field span2"><label>Supplier</label><input id="itemSupplier" list="supplierList"></div>
+<div class="field span4"><label>Remarks</label><textarea id="itemRemarks"></textarea></div>
+<div class="span4"><button class="btn success" type="submit">Save Item</button><button class="btn light" type="button" onclick="closeItemModal()" style="margin-left:6px">Cancel</button></div>
+</div></form></div></div>
+
+<datalist id="supplierList"></datalist><datalist id="categoryList"></datalist>
+
+<script>
+const KEY='stock_management_v1';
+let db=loadDB(), currentReport={type:'stock',data:[]};
+
+function emptyDB(){return {items:[],transactions:[],version:1,createdAt:new Date().toISOString()}}
+function loadDB(){try{const x=JSON.parse(localStorage.getItem(KEY));return x&&x.items&&x.transactions?x:emptyDB()}catch(e){return emptyDB()}}
+function saveDB(){localStorage.setItem(KEY,JSON.stringify(db));refreshAll()}
+function uid(prefix='ID'){return prefix+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function money(n){return '₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function num(n){return Number(n||0)}
+function today(){return new Date().toISOString().slice(0,10)}
+function fmtDate(d){if(!d)return '';const a=d.split('-');return a.length===3?`${a[2]}-${a[1]}-${a[0]}`:d}
+function itemById(id){return db.items.find(x=>x.id===id)}
+function txType(t){return t.type==='IN'?'in':t.type==='OUT'?'out':''}
+
+function stockStats(item){
+ let opening=num(item.opening), inn=0,out=0,adj=0;
+ db.transactions.filter(t=>t.itemId===item.id).forEach(t=>{if(t.type==='IN')inn+=num(t.qty);else if(t.type==='OUT')out+=num(t.qty);else if(t.type==='ADJUST')adj+=num(t.qty)});
+ return {opening,inn,out,adj,balance:opening+inn-out+adj,rate:num(item.rate)}
+}
+function statusOf(item){
+ const s=stockStats(item);
+ if(s.balance<=0)return ['Out of Stock','out'];
+ if(num(item.min)>0&&s.balance<=num(item.min))return ['Low Stock','low'];
+ return ['Normal','ok'];
+}
+function refreshAll(){
+ db=loadDB();
+ renderDashboard();renderItems();renderIn();renderOut();renderCurrent();populateSelects();renderLedger();updateDBInfo();
+}
+function navigate(page){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ document.getElementById(page).classList.add('active');
+ document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+ document.getElementById('pageTitle').textContent=document.querySelector(`button[data-page="${page}"]`).textContent.replace(/^[^\w]+/,'').trim();
+ if(page==='dashboard')renderDashboard();
+}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.page)));
+document.getElementById('today').textContent=new Date().toLocaleString('en-IN',{dateStyle:'full',timeStyle:'short'});
+
+function renderDashboard(){
+ const stats=db.items.map(stockStats), qty=stats.reduce((a,s)=>a+s.balance,0), val=stats.reduce((a,s)=>a+s.balance*s.rate,0);
+ const low=db.items.filter(i=>statusOf(i)[1]!=='ok').length, td=today();
+ document.getElementById('dItems').textContent=db.items.length;
+ document.getElementById('dQty').textContent=qty.toLocaleString('en-IN');
+ document.getElementById('dValue').textContent=money(val);
+ document.getElementById('dLow').textContent=low;
+ document.getElementById('dIn').textContent=db.transactions.filter(t=>t.type==='IN'&&t.date===td).reduce((a,t)=>a+num(t.qty),0);
+ document.getElementById('dOut').textContent=db.transactions.filter(t=>t.type==='OUT'&&t.date===td).reduce((a,t)=>a+num(t.qty),0);
+ document.getElementById('dSuppliers').textContent=new Set(db.items.map(i=>i.supplier).concat(db.transactions.map(t=>t.supplier)).filter(Boolean)).size;
+ document.getElementById('dTransactions').textContent=db.transactions.length;
+ const lowItems=db.items.filter(i=>statusOf(i)[1]!=='ok');
+ document.getElementById('lowTable').innerHTML=lowItems.length?`<div class="table-wrap"><table><thead><tr><th>Code</th><th>Item</th><th>Balance</th><th>Minimum</th><th>Status</th></tr></thead><tbody>${lowItems.map(i=>{const s=stockStats(i),st=statusOf(i);return `<tr><td>${esc(i.code)}</td><td>${esc(i.name)}</td><td>${s.balance} ${esc(i.unit)}</td><td>${num(i.min)}</td><td><span class="badge ${st[1]}">${st[0]}</span></td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">No low-stock items.</div>';
+ const recent=[...db.transactions].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).slice(0,10);
+ document.getElementById('recentTable').innerHTML=recent.length?`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Item</th><th>Qty</th><th>Reference</th><th>Party</th></tr></thead><tbody>${recent.map(t=>`<tr><td>${fmtDate(t.date)}</td><td><span class="badge ${txType(t)}">${t.type}</span></td><td>${esc(itemById(t.itemId)?.name||'Deleted item')}</td><td>${t.qty}</td><td>${esc(t.reference||'')}</td><td>${esc(t.supplier||t.person||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No transactions yet.</div>';
+}
+
+function openItemModal(id=null){
+ document.getElementById('itemModal').classList.add('show');
+ document.getElementById('itemForm').reset();
+ document.getElementById('editItemId').value=id||'';
+ document.getElementById('itemModalTitle').textContent=id?'Edit Item':'Add Item';
+ document.getElementById('itemUnit').value='Nos';
+ document.getElementById('itemMin').value=0;document.getElementById('itemMax').value=0;document.getElementById('itemOpening').value=0;document.getElementById('itemRate').value=0;
+ if(id){const i=itemById(id);if(!i)return;['code','name','category','unit','min','max','opening','rate','location','supplier','remarks'].forEach(k=>document.getElementById('item'+k[0].toUpperCase()+k.slice(1)).value=i[k]??'')}
+}
+function closeItemModal(){document.getElementById('itemModal').classList.remove('show')}
+document.getElementById('itemForm').addEventListener('submit',e=>{
+ e.preventDefault();
+ const id=document.getElementById('editItemId').value, data={code:itemCode.value.trim(),name:itemName.value.trim(),category:itemCategory.value.trim(),unit:itemUnit.value.trim()||'Nos',min:num(itemMin.value),max:num(itemMax.value),opening:num(itemOpening.value),rate:num(itemRate.value),location:itemLocation.value.trim(),supplier:itemSupplier.value.trim(),remarks:itemRemarks.value.trim()};
+ if(!data.code||!data.name)return alert('Item Code and Item Name are required.');
+ const duplicate=db.items.find(i=>i.code.toLowerCase()===data.code.toLowerCase()&&i.id!==id);if(duplicate)return alert('Item Code already exists.');
+ if(id){const old=itemById(id);Object.assign(old,data)}else{data.id=uid('ITM');data.createdAt=new Date().toISOString();db.items.push(data)}
+ localStorage.setItem(KEY,JSON.stringify(db));closeItemModal();refreshAll();
+});
+function renderItems(){
+ const q=(document.getElementById('itemSearch')?.value||'').toLowerCase();
+ const rows=db.items.filter(i=>[i.code,i.name,i.category,i.supplier,i.location].join(' ').toLowerCase().includes(q));
+ document.getElementById('itemsBody').innerHTML=rows.length?rows.map(i=>{const st=statusOf(i);return `<tr><td>${esc(i.code)}</td><td><b>${esc(i.name)}</b></td><td>${esc(i.category)}</td><td>${esc(i.unit)}</td><td>${i.min}</td><td>${i.opening}</td><td>${money(i.rate)}</td><td>${esc(i.location)}</td><td>${esc(i.supplier)}</td><td><span class="badge ${st[1]}">${st[0]}</span></td><td><button class="btn small" onclick="openItemModal('${i.id}')">Edit</button> <button class="btn small danger" onclick="deleteItem('${i.id}')">Delete</button></td></tr>`}).join(''):'<tr><td colspan="11" class="empty">No items found.</td></tr>';
+}
+function deleteItem(id){
+ const used=db.transactions.some(t=>t.itemId===id);if(used)return alert('This item has transactions and cannot be deleted. You can edit it instead.');
+ if(confirm('Delete this item?')){db.items=db.items.filter(i=>i.id!==id);saveDB()}
+}
+function populateSelects(){
+ const options='<option value="">-- Select Item --</option>'+db.items.map(i=>`<option value="${i.id}">${esc(i.code)} - ${esc(i.name)}</option>`).join('');
+ ['inItem','outItem'].forEach(id=>document.getElementById(id).innerHTML=options);
+ const cur='<option value="">All Items</option>'+db.items.map(i=>`<option value="${i.id}">${esc(i.code)} - ${esc(i.name)}</option>`).join('');
+ document.getElementById('ledgerItem').innerHTML=cur;
+ const suppliers=[...new Set(db.items.map(i=>i.supplier).concat(db.transactions.map(t=>t.supplier)).filter(Boolean))];
+ supplierList.innerHTML=suppliers.map(x=>`<option value="${esc(x)}">`).join('');
+ const cats=[...new Set(db.items.map(i=>i.category).filter(Boolean))];
+ categoryList.innerHTML=cats.map(x=>`<option value="${esc(x)}">`).join('');
+}
+function setDefaultDates(){setTimeout(()=>{inDate.value=today();outDate.value=today()},0)}
+function renderIn(){
+ const rows=db.transactions.filter(t=>t.type==='IN').sort((a,b)=>b.date.localeCompare(a.date)||String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,100);
+ inBody.innerHTML=rows.length?rows.map(t=>`<tr><td>${fmtDate(t.date)}</td><td>${esc(t.reference)}</td><td>${esc(t.supplier)}</td><td>${esc(itemById(t.itemId)?.name||'Deleted item')}</td><td>${t.qty}</td><td>${money(t.rate)}</td><td>${money(num(t.qty)*num(t.rate))}</td><td>${esc(t.batch)}</td><td>${fmtDate(t.expiry)}</td></tr>`).join(''):'<tr><td colspan="9" class="empty">No Stock IN entries.</td></tr>';
+}
+document.getElementById('inForm').addEventListener('submit',e=>{
+ e.preventDefault();const item=itemById(inItem.value);if(!item)return alert('Select an item.');
+ const qty=num(inQty.value);if(qty<=0)return alert('Quantity must be greater than zero.');
+ const rate=inRate.value===''?num(item.rate):num(inRate.value);
+ db.transactions.push({id:uid('TX'),type:'IN',date:inDate.value||today(),itemId:item.id,qty,rate,reference:inInvoice.value.trim(),supplier:inSupplier.value.trim()||item.supplier,batch:inBatch.value.trim(),expiry:inExpiry.value,remarks:inRemarks.value.trim(),createdAt:new Date().toISOString()});
+ item.rate=rate;localStorage.setItem(KEY,JSON.stringify(db));e.target.reset();setDefaultDates();refreshAll();alert('Stock IN saved.');
+});
+function renderOut(){
+ const rows=db.transactions.filter(t=>t.type==='OUT').sort((a,b)=>b.date.localeCompare(a.date)||String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,100);
+ outBody.innerHTML=rows.length?rows.map(t=>`<tr><td>${fmtDate(t.date)}</td><td>${esc(t.reference)}</td><td>${esc(t.person)}</td><td>${esc(itemById(t.itemId)?.name||'Deleted item')}</td><td>${t.qty}</td><td>${esc(t.purpose)}</td><td>${esc(t.remarks)}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">No Stock OUT entries.</td></tr>';
+}
+document.getElementById('outForm').addEventListener('submit',e=>{
+ e.preventDefault();const item=itemById(outItem.value);if(!item)return alert('Select an item.');
+ const qty=num(outQty.value), bal=stockStats(item).balance;if(qty<=0)return alert('Quantity must be greater than zero.');if(qty>bal)return alert(`Insufficient stock. Available: ${bal} ${item.unit}`);
+ db.transactions.push({id:uid('TX'),type:'OUT',date:outDate.value||today(),itemId:item.id,qty,rate:num(item.rate),reference:outIssue.value.trim(),person:outPerson.value.trim(),purpose:outPurpose.value.trim(),remarks:outRemarks.value.trim(),createdAt:new Date().toISOString()});
+ localStorage.setItem(KEY,JSON.stringify(db));e.target.reset();setDefaultDates();refreshAll();alert('Stock OUT saved.');
+});
+function renderCurrent(){
+ const q=(currentSearch.value||'').toLowerCase(), filter=currentFilter.value;
+ const rows=db.items.filter(i=>[i.code,i.name,i.category].join(' ').toLowerCase().includes(q)).filter(i=>filter==='all'||statusOf(i)[1]===filter);
+ currentBody.innerHTML=rows.length?rows.map(i=>{const s=stockStats(i),st=statusOf(i);return `<tr><td>${esc(i.code)}</td><td><b>${esc(i.name)}</b></td><td>${esc(i.category)}</td><td>${esc(i.unit)}</td><td>${s.opening}</td><td>${s.inn}</td><td>${s.out}</td><td>${s.adj}</td><td><b>${s.balance}</b></td><td>${money(s.rate)}</td><td>${money(s.balance*s.rate)}</td><td><span class="badge ${st[1]}">${st[0]}</span></td></tr>`}).join(''):'<tr><td colspan="12" class="empty">No stock records.</td></tr>';
+}
+function ledgerRows(itemId,from='',to=''){
+ let rows=db.transactions.filter(t=>(!itemId||t.itemId===itemId)&&(!from||t.date>=from)&&(!to||t.date<=to)).sort((a,b)=>a.date.localeCompare(b.date)||String(a.createdAt).localeCompare(String(b.createdAt)));
+ let balance=itemId?num(itemById(itemId)?.opening):0;
+ if(itemId&&from){db.transactions.filter(t=>t.itemId===itemId&&t.date<from).sort((a,b)=>a.date.localeCompare(b.date)).forEach(t=>balance+=t.type==='IN'?num(t.qty):t.type==='OUT'?-num(t.qty):num(t.qty))}
+ return rows.map(t=>{let inn=t.type==='IN'?num(t.qty):0,out=t.type==='OUT'?num(t.qty):0,adj=t.type==='ADJUST'?num(t.qty):0;balance+=inn-out+adj;return {...t,balance,inn,out,adj}})}
+function renderLedger(){
+ const id=ledgerItem.value||'',from=ledgerFrom.value,to=ledgerTo.value,rows=ledgerRows(id,from,to);
+ ledgerSummary.textContent=id?`Ledger: ${itemById(id)?.name||''} | Opening balance: ${itemById(id)?.opening||0} | Current balance: ${stockStats(itemById(id)).balance}`:`Showing ${rows.length} transactions for all items.`;
+ ledgerBody.innerHTML=rows.length?rows.map(t=>`<tr><td>${fmtDate(t.date)}</td><td><span class="badge ${txType(t)}">${t.type}</span></td><td>${esc(t.reference)}</td><td>${esc(t.supplier||t.person||'')}</td><td>${t.inn||''}</td><td>${t.out||''}</td><td>${t.adj||''}</td><td><b>${t.balance}</b></td><td>${esc(t.remarks||'')}</td></tr>`).join(''):'<tr><td colspan="9" class="empty">No ledger entries.</td></tr>';
+}
+function showReport(type){
+ currentReport={type,data:[]};let title='',html='',data=[];
+ if(type==='stock'){title='Current Stock Report';data=db.items.map(i=>{const s=stockStats(i);return {Code:i.code,Item:i.name,Category:i.category,Unit:i.unit,Balance:s.balance,Rate:s.rate,Value:s.balance*s.rate,Status:statusOf(i)[0]}});html=reportTable(data)}
+ if(type==='low'){title='Low Stock Report';data=db.items.filter(i=>statusOf(i)[1]!=='ok').map(i=>{const s=stockStats(i);return {Code:i.code,Item:i.name,Unit:i.unit,Balance:s.balance,Minimum:i.min,Status:statusOf(i)[0]}});html=reportTable(data)}
+ if(type==='in'){title='Stock IN Report';data=db.transactions.filter(t=>t.type==='IN').map(t=>({Date:t.date,Item:itemById(t.itemId)?.name||'',Invoice:t.reference,Supplier:t.supplier,Quantity:t.qty,Rate:t.rate,Amount:num(t.qty)*num(t.rate),Batch:t.batch,Expiry:t.expiry}));html=reportTable(data)}
+ if(type==='out'){title='Stock OUT Report';data=db.transactions.filter(t=>t.type==='OUT').map(t=>({Date:t.date,Item:itemById(t.itemId)?.name||'',Issue:t.reference,Person:t.person,Quantity:t.qty,Purpose:t.purpose,Remarks:t.remarks}));html=reportTable(data)}
+ if(type==='ledger'){title='Complete Stock Ledger';data=db.transactions.map(t=>({Date:t.date,Type:t.type,Item:itemById(t.itemId)?.name||'',Reference:t.reference,Quantity:t.qty,Party:t.supplier||t.person,Remarks:t.remarks}));html=reportTable(data)}
+ if(type==='expiry'){title='Expiry Report';data=db.transactions.filter(t=>t.type==='IN'&&t.expiry).sort((a,b)=>a.expiry.localeCompare(b.expiry)).map(t=>({Expiry:t.expiry,Item:itemById(t.itemId)?.name||'',Batch:t.batch,Quantity:t.qty,Supplier:t.supplier,Date:t.date}));html=reportTable(data)}
+ currentReport.data=data;reportTitle.innerHTML=`<h2>${title}</h2><p style="color:#64748b">${data.length} record(s)</p>`;reportContent.innerHTML=html;
+}
+function reportTable(data){if(!data.length)return '<div class="empty">No records found.</div>';const cols=Object.keys(data[0]);return `<table><thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${data.map(r=>`<tr>${cols.map(c=>`<td>${esc(typeof r[c]==='number'&&['Rate','Amount','Value'].includes(c)?money(r[c]):r[c])}</td>`).join('')}</tr>`).join('')}</tbody></table>`}
+function printPage(page){document.querySelectorAll('.page').forEach(p=>p.classList.remove('printable'));document.getElementById(page).classList.add('printable');window.print();setTimeout(()=>document.getElementById(page).classList.remove('printable'),500)}
+function printReport(){document.querySelectorAll('.page').forEach(p=>p.classList.remove('printable'));document.getElementById('reports').classList.add('printable');window.print();setTimeout(()=>document.getElementById('reports').classList.remove('printable'),500)}
+
+function csvEscape(v){v=String(v??'');return /[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v}
+function downloadCSV(filename,rows){if(!rows.length)return alert('No data to export.');const cols=Object.keys(rows[0]);const csv=[cols.map(csvEscape).join(','),...rows.map(r=>cols.map(c=>csvEscape(r[c])).join(','))].join('\n');const blob=new Blob(["\ufeff"+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href)}
+function exportItemsCSV(){downloadCSV('items.csv',db.items.map(i=>({...i,Current_Stock:stockStats(i).balance,Stock_Value:stockStats(i).balance*stockStats(i).rate})))}
+function exportCurrentCSV(){downloadCSV('current-stock.csv',db.items.map(i=>{const s=stockStats(i);return {Code:i.code,Item:i.name,Category:i.category,Unit:i.unit,Opening:s.opening,IN:s.inn,OUT:s.out,Adjustment:s.adj,Balance:s.balance,Rate:s.rate,Value:s.balance*s.rate,Status:statusOf(i)[0]}}))}
+function exportReportCSV(){downloadCSV('report.csv',currentReport.data)}
+
+function backupData(){
+ const payload={...db,backupDate:new Date().toISOString(),app:'Stock Management System'};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`stock-backup-${today()}.json`;a.click();URL.revokeObjectURL(a.href);
+}
+function restoreData(e){
+ const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const x=JSON.parse(ev.target.result);if(!Array.isArray(x.items)||!Array.isArray(x.transactions))throw Error();if(!confirm('Restore this backup? Current data will be replaced.'))return;db={items:x.items,transactions:x.transactions,version:1,createdAt:x.createdAt||new Date().toISOString()};localStorage.setItem(KEY,JSON.stringify(db));refreshAll();alert('Backup restored successfully.')}catch(err){alert('Invalid backup file.')}};reader.readAsText(file);e.target.value=''}
+function updateDBInfo(){dbInfo.innerHTML=`<p><b>Items:</b> ${db.items.length}</p><p><b>Transactions:</b> ${db.transactions.length}</p><p><b>Storage:</b> Browser localStorage</p><p><b>Last page refresh:</b> ${new Date().toLocaleString('en-IN')}</p>`}
+function clearAllData(){if(confirm('WARNING: This will permanently clear ALL stock data from this browser. Continue?')){if(confirm('Final confirmation: download a backup first?'))return;localStorage.removeItem(KEY);db=emptyDB();refreshAll();alert('All data cleared.')}}
+function demoData(){
+ if(db.items.length||db.transactions.length){if(!confirm('Demo data will be added to your existing data. Continue?'))return}
+ const i1={id:uid('ITM'),code:'ST-001',name:'A4 Paper',category:'Stationery',unit:'Pkt',min:10,max:100,opening:25,rate:250,location:'Rack A1',supplier:'ABC Suppliers',remarks:'',createdAt:new Date().toISOString()};
+ const i2={id:uid('ITM'),code:'ST-002',name:'Ball Pen Blue',category:'Stationery',unit:'Box',min:5,max:50,opening:8,rate:120,location:'Rack A2',supplier:'XYZ Traders',remarks:'',createdAt:new Date().toISOString()};
+ db.items.push(i1,i2);
+ db.transactions.push({id:uid('TX'),type:'IN',date:today(),itemId:i1.id,qty:20,rate:245,reference:'INV-1001',supplier:'ABC Suppliers',batch:'',expiry:'',remarks:'Demo purchase',createdAt:new Date().toISOString()});
+ db.transactions.push({id:uid('TX'),type:'OUT',date:today(),itemId:i1.id,qty:5,rate:245,reference:'ISS-001',person:'Admin Office',purpose:'Office use',remarks:'Demo issue',createdAt:new Date().toISOString()});
+ localStorage.setItem(KEY,JSON.stringify(db));refreshAll();alert('Demo data added.');
+}
+inDate.value=today();outDate.value=today();refreshAll();
+</script>
+</body>
+</html>
